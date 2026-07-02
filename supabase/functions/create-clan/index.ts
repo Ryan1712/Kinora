@@ -32,7 +32,11 @@ Deno.serve(async (req: Request) => {
     })
     .select()
     .single();
-  if (personErr) return jsonResponse({ error: personErr.message }, 500);
+  if (personErr) {
+    // Clean up the clan row that was just created if person insert fails
+    await svc.from("clans").delete().eq("id", clan.id);
+    return jsonResponse({ error: personErr.message }, 500);
+  }
 
   return jsonResponse({ clan_id: clan.id, person_id: person.id });
 });
