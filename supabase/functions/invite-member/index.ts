@@ -48,6 +48,8 @@ Deno.serve(async (req: Request) => {
       invited_by_person_id: callerPerson.id,
       invitee_user_id: invitee_user_id ?? null,
       invitee_phone_or_email: invitee_phone_or_email ?? null,
+      invitee_full_name,
+      invitee_gender: invitee_gender ?? "unknown",
       proposed_relationship_type: target.type,
       proposed_relationship_with_person_id: target.counterpartPersonId,
     })

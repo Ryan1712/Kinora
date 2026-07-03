@@ -37,6 +37,7 @@ describe("invites table", () => {
         clan_id: clanId,
         invited_by_person_id: inviterPersonId,
         invitee_user_id: inviteeUserId,
+        invitee_full_name: "Invitee",
         proposed_relationship_type: "parent_child",
         proposed_relationship_with_person_id: anchorPersonId,
       })
@@ -49,6 +50,7 @@ describe("invites table", () => {
       clan_id: clanId,
       invited_by_person_id: inviterPersonId,
       invitee_user_id: inviteeUserId,
+      invitee_full_name: "Invitee",
       proposed_relationship_type: "parent_child",
       proposed_relationship_with_person_id: anchorPersonId,
     });
