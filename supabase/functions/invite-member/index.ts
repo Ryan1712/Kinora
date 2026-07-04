@@ -52,6 +52,7 @@ Deno.serve(async (req: Request) => {
       invitee_gender: invitee_gender ?? "unknown",
       proposed_relationship_type: target.type,
       proposed_relationship_with_person_id: target.counterpartPersonId,
+      resolved_generation: target.newPersonGeneration,
     })
     .select()
     .single();

@@ -31,10 +31,7 @@ Deno.serve(async (req: Request) => {
     .single();
   if (targetErr || !target) return jsonResponse({ error: "relationship target not found" }, 500);
 
-  const generation =
-    invite.proposed_relationship_type === "spouse"
-      ? target.generation_number
-      : target.generation_number - 1;
+  const generation = invite.resolved_generation;
 
   const { data: person, error: personErr } = await svc
     .from("persons")

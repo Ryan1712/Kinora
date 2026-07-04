@@ -40,6 +40,7 @@ describe("invites table", () => {
         invitee_full_name: "Invitee",
         proposed_relationship_type: "parent_child",
         proposed_relationship_with_person_id: anchorPersonId,
+        resolved_generation: 14,
       })
       .select()
       .single();
@@ -53,6 +54,7 @@ describe("invites table", () => {
       invitee_full_name: "Invitee",
       proposed_relationship_type: "parent_child",
       proposed_relationship_with_person_id: anchorPersonId,
+      resolved_generation: 14,
     });
     expect(dupErr).not.toBeNull();
 
