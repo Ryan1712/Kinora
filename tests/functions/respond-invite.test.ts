@@ -181,4 +181,89 @@ describe("respond-invite function", () => {
       .eq("type", "parent_child");
     expect(rel).toHaveLength(1);
   });
+
+  it("accept (father_sibling): new uncle is placed at the placeholder father's generation, parented by the placeholder grandparent, and the relationship edge is not inverted", async () => {
+    // Regression test for the highest-value gap flagged in review of the resolved_generation
+    // fix: father_sibling (and mother_sibling) are the only relation codes where
+    // proposed_relationship_with_person_id is neither the anchor nor the anchor's direct
+    // parent, but a grandparent reached by auto-creating two placeholder ancestors
+    // (father, then grandparent). This exercises that full chain through the real
+    // create-clan -> invite-member -> respond-invite flow and asserts the uncle ends up
+    // a) at the father's generation (not the grandparent's, not the anchor's), and
+    // b) parented by the grandparent (from_person_id), not the other way around.
+    const svc = serviceClient();
+    const adminEmail = `rfsadm-${Date.now()}-${Math.random()}@example.com`;
+    const adminUser = await createTestUser(adminEmail, "password123");
+    await svc.from("users").insert({ id: adminUser.id, full_name: "Admin" });
+    const adminClient = await signInAs(adminEmail, "password123");
+    const adminToken = await accessTokenFor(adminClient);
+
+    const clanRes = await fetch(functionUrl("create-clan"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Ho Father Sibling Regression",
+        branch_type: "noi",
+        admin_full_name: "Admin",
+        admin_generation_number: 15,
+      }),
+    });
+    expect(clanRes.status).toBe(200);
+    const clanBody = await clanRes.json();
+    const clanId = clanBody.clan_id;
+    const anchorPersonId = clanBody.person_id;
+
+    const inviteeEmail = `rfsinv-${Date.now()}@example.com`;
+    const inviteeUser = await createTestUser(inviteeEmail, "password123");
+    await svc.from("users").insert({ id: inviteeUser.id, full_name: "Chu" });
+
+    const inviteRes = await fetch(functionUrl("invite-member"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clan_id: clanId,
+        anchor_person_id: anchorPersonId,
+        relation_code: "father_sibling",
+        invitee_full_name: "Chu",
+        invitee_gender: "male",
+        invitee_user_id: inviteeUser.id,
+      }),
+    });
+    expect(inviteRes.status).toBe(200);
+    const inviteBody = await inviteRes.json();
+    expect(inviteBody.resolved_generation).toBe(14);
+
+    const { data: pendingInvite } = await svc
+      .from("invites")
+      .select("proposed_relationship_with_person_id")
+      .eq("id", inviteBody.invite_id)
+      .single();
+    const grandparentId = pendingInvite!.proposed_relationship_with_person_id as string;
+
+    const inviteeClient = await signInAs(inviteeEmail, "password123");
+    const inviteeToken = await accessTokenFor(inviteeClient);
+
+    const respondRes = await fetch(functionUrl("respond-invite"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${inviteeToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ invite_id: inviteBody.invite_id, action: "accept" }),
+    });
+    expect(respondRes.status).toBe(200);
+    const respondBody = await respondRes.json();
+
+    const { data: newPerson } = await svc
+      .from("persons")
+      .select("generation_number")
+      .eq("id", respondBody.person_id)
+      .single();
+    expect(newPerson!.generation_number).toBe(14);
+
+    const { data: rel } = await svc
+      .from("relationships")
+      .select("*")
+      .eq("from_person_id", grandparentId)
+      .eq("to_person_id", respondBody.person_id)
+      .eq("type", "parent_child");
+    expect(rel).toHaveLength(1);
+  });
 });
