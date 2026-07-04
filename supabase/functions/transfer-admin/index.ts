@@ -35,8 +35,11 @@ Deno.serve(async (req: Request) => {
   if (!target) return jsonResponse({ error: "target person not found in this clan" }, 404);
   if (!target.role) return jsonResponse({ error: "target has no active account in this clan" }, 409);
 
-  await svc.from("persons").update({ role: "member" }).eq("id", caller.id);
-  await svc.from("persons").update({ role: "admin" }).eq("id", new_admin_person_id);
+  const { error: transferErr } = await svc.rpc("transfer_admin_role", {
+    p_caller_person_id: caller.id,
+    p_target_person_id: new_admin_person_id,
+  });
+  if (transferErr) return jsonResponse({ error: transferErr.message }, 500);
 
   return jsonResponse({});
 });

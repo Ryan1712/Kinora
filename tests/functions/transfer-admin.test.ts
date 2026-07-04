@@ -56,4 +56,29 @@ describe("transfer-admin function", () => {
     });
     expect(res.status).toBe(401);
   });
+
+  it("rolls back the caller's demotion when the target update affects zero rows (race window)", async () => {
+    // Simulates the race the transfer_admin_role RPC exists to close: the
+    // target person got unlinked (role -> null) after the Edge Function's
+    // earlier validation read but before the transactional swap runs. We
+    // exercise the RPC directly (bypassing the Edge Function's own
+    // pre-check) to prove both updates roll back together instead of the
+    // caller being left demoted with no new admin promoted.
+    const { svc, adminPerson, memberPerson } = await setupClan();
+
+    // Simulate the concurrent unlink: target now has no active role.
+    await svc.from("persons").update({ role: null }).eq("id", memberPerson.id);
+
+    const { error } = await svc.rpc("transfer_admin_role", {
+      p_caller_person_id: adminPerson.id,
+      p_target_person_id: memberPerson.id,
+    });
+    expect(error).not.toBeNull();
+
+    const { data: caller } = await svc.from("persons").select("role").eq("id", adminPerson.id).single();
+    expect(caller!.role).toBe("admin");
+
+    const { data: target } = await svc.from("persons").select("role").eq("id", memberPerson.id).single();
+    expect(target!.role).toBeNull();
+  });
 });
