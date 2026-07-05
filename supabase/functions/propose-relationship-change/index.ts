@@ -21,6 +21,14 @@ Deno.serve(async (req: Request) => {
     .maybeSingle();
   if (!person) return jsonResponse({ error: "not a member of this clan" }, 403);
 
+  const { data: targetPerson } = await svc
+    .from("persons")
+    .select("id")
+    .eq("id", proposed_relationship_with_person_id)
+    .eq("clan_id", clan_id)
+    .maybeSingle();
+  if (!targetPerson) return jsonResponse({ error: "target person not found in this clan" }, 404);
+
   const { data: request, error } = await svc
     .from("relationship_change_requests")
     .insert({

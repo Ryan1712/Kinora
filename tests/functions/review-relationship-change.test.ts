@@ -125,4 +125,52 @@ describe("review-relationship-change function", () => {
     });
     expect(res.status).toBe(403);
   });
+
+  it("rejects spouse approval when person already has a recorded spouse", async () => {
+    const { svc, clan, adminEmail, adminPerson, memberPerson } = await setupClanAdminMemberAndTarget();
+
+    const { data: existingSpousePerson } = await svc
+      .from("persons")
+      .insert({ clan_id: clan.id, full_name: "Existing Spouse", generation_number: 17 })
+      .select()
+      .single();
+    await svc.from("relationships").insert({
+      clan_id: clan.id, from_person_id: memberPerson.id, to_person_id: existingSpousePerson!.id, type: "spouse",
+    });
+
+    const { data: newSpouseCandidate } = await svc
+      .from("persons")
+      .insert({ clan_id: clan.id, full_name: "New Spouse Candidate", generation_number: 17 })
+      .select()
+      .single();
+
+    const { data: req } = await svc
+      .from("relationship_change_requests")
+      .insert({
+        clan_id: clan.id, person_id: memberPerson.id,
+        proposed_relationship_type: "spouse",
+        proposed_relationship_with_person_id: newSpouseCandidate!.id,
+      })
+      .select()
+      .single();
+
+    const adminClient = await signInAs(adminEmail, "password123");
+    const token = await accessTokenFor(adminClient);
+    const res = await fetch(functionUrl("review-relationship-change"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ request_id: req!.id, action: "approve" }),
+    });
+    expect(res.status).toBe(409);
+
+    const { data: newEdge } = await svc
+      .from("relationships")
+      .select("*")
+      .eq("type", "spouse")
+      .or(`from_person_id.eq.${newSpouseCandidate!.id},to_person_id.eq.${newSpouseCandidate!.id}`);
+    expect(newEdge).toHaveLength(0);
+
+    const { data: updatedReq } = await svc.from("relationship_change_requests").select("status").eq("id", req!.id).single();
+    expect(updatedReq!.status).toBe("pending");
+  });
 });

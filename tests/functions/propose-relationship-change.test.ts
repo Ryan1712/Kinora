@@ -47,4 +47,51 @@ describe("propose-relationship-change function", () => {
       .single();
     expect(request!.status).toBe("pending");
   });
+
+  it("rejects a proposed_relationship_with_person_id belonging to a different clan", async () => {
+    const svc = serviceClient();
+    const adminEmail = `padm2-${Date.now()}@example.com`;
+    const adminUser = await createTestUser(adminEmail, "password123");
+    await svc.from("users").insert({ id: adminUser.id, full_name: "Admin" });
+    const { data: clan } = await svc
+      .from("clans")
+      .insert({ name: "Ho Propose A", branch_type: "noi", created_by: adminUser.id })
+      .select()
+      .single();
+
+    const memberEmail = `pmem2-${Date.now()}@example.com`;
+    const memberUser = await createTestUser(memberEmail, "password123");
+    await svc.from("users").insert({ id: memberUser.id, full_name: "Member" });
+    await svc.from("persons").insert({
+      clan_id: clan!.id, full_name: "Member", generation_number: 16,
+      linked_user_id: memberUser.id, role: "member",
+    });
+
+    const otherAdminEmail = `poadm-${Date.now()}@example.com`;
+    const otherAdminUser = await createTestUser(otherAdminEmail, "password123");
+    await svc.from("users").insert({ id: otherAdminUser.id, full_name: "Other Admin" });
+    const { data: otherClan } = await svc
+      .from("clans")
+      .insert({ name: "Ho Propose B", branch_type: "noi", created_by: otherAdminUser.id })
+      .select()
+      .single();
+    const { data: otherPerson } = await svc
+      .from("persons")
+      .insert({ clan_id: otherClan!.id, full_name: "Other Admin", generation_number: 15, linked_user_id: otherAdminUser.id, role: "admin" })
+      .select()
+      .single();
+
+    const client = await signInAs(memberEmail, "password123");
+    const token = await accessTokenFor(client);
+    const res = await fetch(functionUrl("propose-relationship-change"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clan_id: clan!.id,
+        proposed_relationship_type: "parent_child",
+        proposed_relationship_with_person_id: otherPerson!.id,
+      }),
+    });
+    expect(res.status).toBe(404);
+  });
 });

@@ -111,4 +111,24 @@ describe("invite-member function", () => {
     });
     expect(res.status).toBe(403);
   });
+
+  it("rejects an anchor_person_id belonging to a different clan", async () => {
+    const { email, clan } = await setupClanWithAdmin();
+    const other = await setupClanWithAdmin();
+
+    const client = await signInAs(email, "password123");
+    const token = await accessTokenFor(client);
+    const res = await fetch(functionUrl("invite-member"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clan_id: clan.id,
+        anchor_person_id: other.adminPerson.id,
+        relation_code: "son",
+        invitee_full_name: "Con",
+        invitee_phone_or_email: "con-crossclan@example.com",
+      }),
+    });
+    expect(res.status).toBe(404);
+  });
 });

@@ -34,6 +34,14 @@ Deno.serve(async (req: Request) => {
   const canInvite = clan.invite_permission === "all_members" || ["admin", "deputy"].includes(callerPerson.role);
   if (!canInvite) return jsonResponse({ error: "not permitted to invite in this clan" }, 403);
 
+  const { data: anchorPerson } = await svc
+    .from("persons")
+    .select("id")
+    .eq("id", anchor_person_id)
+    .eq("clan_id", clan_id)
+    .maybeSingle();
+  if (!anchorPerson) return jsonResponse({ error: "anchor person not found in this clan" }, 404);
+
   let target;
   try {
     target = await resolveDirectTarget(svc, clan_id, anchor_person_id, relation_code as RelationCode);

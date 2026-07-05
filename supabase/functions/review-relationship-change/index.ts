@@ -67,6 +67,18 @@ Deno.serve(async (req: Request) => {
     if (target!.generation_number !== person!.generation_number) {
       return jsonResponse({ error: "spouses must be the same generation" }, 409);
     }
+
+    const { data: existingSpouse } = await svc
+      .from("relationships")
+      .select("id")
+      .eq("type", "spouse")
+      .or(
+        `from_person_id.eq.${personId},to_person_id.eq.${personId},from_person_id.eq.${targetId},to_person_id.eq.${targetId}`,
+      );
+    if (existingSpouse && existingSpouse.length > 0) {
+      return jsonResponse({ error: "person or target already has a recorded spouse" }, 409);
+    }
+
     const { error: insertErr } = await svc
       .from("relationships")
       .insert({ clan_id: changeRequest.clan_id, from_person_id: personId, to_person_id: targetId, type: "spouse" });
