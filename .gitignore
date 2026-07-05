@@ -2,3 +2,4 @@ node_modules/
 .env.test
 supabase/.branches
 supabase/.temp
+.superpowers/
