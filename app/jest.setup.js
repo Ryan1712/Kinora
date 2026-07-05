@@ -15,6 +15,10 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+// react-native-reanimated@4.5.0's official Jest mock transitively requires the real
+// react-native-worklets package, which crashes under Jest with a native module init failure.
+// This mock's scope is limited to exports exercised by current Reanimated usage; extend if
+// a future component uses gesture handlers, measure(), layout animations, or other features.
 jest.mock('react-native-worklets', () => ({
   createSerializable: jest.fn((obj) => obj),
   makeShareable: jest.fn((obj) => obj),
