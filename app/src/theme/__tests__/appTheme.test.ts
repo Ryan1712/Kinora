@@ -1,4 +1,4 @@
-﻿import { appTheme } from '../appTheme';
+import { appTheme } from '../appTheme';
 import { brand } from '../brand';
 
 describe('appTheme', () => {
@@ -7,7 +7,12 @@ describe('appTheme', () => {
     expect(appTheme.colors.error).toBe(brand.red);
   });
 
-  it('is a light theme (dark: false)', () => {
-    expect(appTheme.dark).toBe(false);
+  it('is a dark theme with the Ink Root dark background', () => {
+    expect(appTheme.dark).toBe(true);
+    expect(appTheme.colors.background).toBe('#180d08');
+  });
+
+  it('uses brand text colors for surface text', () => {
+    expect(appTheme.colors.onSurface).toBe(brand.text.body);
   });
 });
