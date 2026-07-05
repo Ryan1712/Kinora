@@ -27,7 +27,7 @@ export default function SignUpScreen() {
         if (insertError) throw insertError;
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Dang ky that bai');
+      setError(e instanceof Error ? e.message : 'Đăng ký thất bại');
     } finally {
       setSubmitting(false);
     }
@@ -36,11 +36,11 @@ export default function SignUpScreen() {
   return (
     <View style={styles.container}>
       <Text variant="headlineMedium" style={styles.title}>
-        Tao tai khoan
+        Tạo tài khoản
       </Text>
       <TextInput
-        label="Ho ten"
-        accessibilityLabel="Ho ten"
+        label="Họ tên"
+        accessibilityLabel="Họ tên"
         value={fullName}
         onChangeText={setFullName}
         style={styles.input}
@@ -55,8 +55,8 @@ export default function SignUpScreen() {
         style={styles.input}
       />
       <TextInput
-        label="Mat khau"
-        accessibilityLabel="Mat khau"
+        label="Mật khẩu"
+        accessibilityLabel="Mật khẩu"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -70,9 +70,9 @@ export default function SignUpScreen() {
         disabled={submitting}
         style={styles.button}
       >
-        Dang ky
+        Đăng ký
       </Button>
-      <Link href="/(auth)/sign-in">Da co tai khoan? Dang nhap</Link>
+      <Link href="/(auth)/sign-in">Đã có tài khoản? Đăng nhập</Link>
     </View>
   );
 }

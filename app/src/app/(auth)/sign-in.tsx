@@ -23,7 +23,7 @@ export default function SignInScreen() {
   return (
     <View style={styles.container}>
       <Text variant="headlineMedium" style={styles.title}>
-        Pha Ky
+        Phả Ký
       </Text>
       <TextInput
         label="Email"
@@ -35,8 +35,8 @@ export default function SignInScreen() {
         style={styles.input}
       />
       <TextInput
-        label="Mat khau"
-        accessibilityLabel="Mat khau"
+        label="Mật khẩu"
+        accessibilityLabel="Mật khẩu"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -50,9 +50,9 @@ export default function SignInScreen() {
         disabled={submitting}
         style={styles.button}
       >
-        Dang nhap
+        Đăng nhập
       </Button>
-      <Link href="/(auth)/sign-up">Chua co tai khoan? Dang ky</Link>
+      <Link href="/(auth)/sign-up">Chưa có tài khoản? Đăng ký</Link>
     </View>
   );
 }

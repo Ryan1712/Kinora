@@ -27,9 +27,9 @@ export default function RequestsScreen() {
   return (
     <View style={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>
-        Pending requests
+        Yêu cầu chờ duyệt
       </Text>
-      {isLoading ? <Text>Loading...</Text> : null}
+      {isLoading ? <Text>Đang tải...</Text> : null}
       <FlatList
         data={requests ?? []}
         keyExtractor={(item) => item.id}
@@ -44,14 +44,14 @@ export default function RequestsScreen() {
                 onPress={() => review(item.id, 'reject')}
                 loading={processingId === item.id}
               >
-                Reject
+                Từ chối
               </Button>
               <Button
                 mode="contained"
                 onPress={() => review(item.id, 'approve')}
                 loading={processingId === item.id}
               >
-                Approve
+                Duyệt
               </Button>
             </Card.Actions>
           </Card>

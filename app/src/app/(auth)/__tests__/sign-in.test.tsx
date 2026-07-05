@@ -21,8 +21,8 @@ describe('SignInScreen', () => {
 
     const { getByLabelText, getByText } = await render(<SignInScreen />);
     await fireEvent.changeText(getByLabelText('Email'), 'duy@example.com');
-    await fireEvent.changeText(getByLabelText('Mat khau'), 'password123');
-    await fireEvent.press(getByText('Dang nhap'));
+    await fireEvent.changeText(getByLabelText('Mật khẩu'), 'password123');
+    await fireEvent.press(getByText('Đăng nhập'));
 
     await waitFor(() => {
       expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
@@ -40,8 +40,8 @@ describe('SignInScreen', () => {
 
     const { findByText, getByLabelText, getByText } = await render(<SignInScreen />);
     await fireEvent.changeText(getByLabelText('Email'), 'duy@example.com');
-    await fireEvent.changeText(getByLabelText('Mat khau'), 'wrong');
-    await fireEvent.press(getByText('Dang nhap'));
+    await fireEvent.changeText(getByLabelText('Mật khẩu'), 'wrong');
+    await fireEvent.press(getByText('Đăng nhập'));
 
     expect(await findByText('Invalid login credentials')).toBeTruthy();
   });

@@ -26,10 +26,10 @@ describe('SignUpScreen', () => {
     });
 
     const { getByLabelText, getByText } = await render(<SignUpScreen />);
-    await fireEvent.changeText(getByLabelText('Ho ten'), 'Pham Van Duy');
+    await fireEvent.changeText(getByLabelText('Họ tên'), 'Pham Van Duy');
     await fireEvent.changeText(getByLabelText('Email'), 'duy@example.com');
-    await fireEvent.changeText(getByLabelText('Mat khau'), 'password123');
-    await fireEvent.press(getByText('Dang ky'));
+    await fireEvent.changeText(getByLabelText('Mật khẩu'), 'password123');
+    await fireEvent.press(getByText('Đăng ký'));
 
     await waitFor(() => {
       expect(supabase.auth.signUp).toHaveBeenCalledWith({
