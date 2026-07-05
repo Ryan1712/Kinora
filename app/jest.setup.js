@@ -14,3 +14,16 @@ jest.mock('react-native-safe-area-context', () => {
     useSafeAreaFrame: () => ({ x: 0, y: 0, width: 320, height: 640 }),
   };
 });
+
+jest.mock('react-native-worklets', () => ({
+  createSerializable: jest.fn((obj) => obj),
+  makeShareable: jest.fn((obj) => obj),
+  makeShareableCloneOnUIRecursive: jest.fn((obj) => obj),
+  isSerializableRef: jest.fn(() => false),
+  scheduleOnUI: jest.fn((fn) => fn),
+  isWorkletFunction: jest.fn(() => false),
+  RuntimeKind: {},
+  serializableMappingCache: new Map(),
+}));
+
+jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
