@@ -1,12 +1,14 @@
-﻿import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Button, HelperText, Menu, SegmentedButtons, Text, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { inviteMember } from '@/api/inviteMember';
 import type { RelationCode } from '@/api/types';
+import { PrimaryButton } from '@/components/PrimaryButton';
 import { relationLabels } from '@/constants/relationLabels';
 import { useClanMembers } from '@/queries/useClanMembers';
+import { brand } from '@/theme/brand';
 
 const relationCodes = Object.keys(relationLabels) as RelationCode[];
 
@@ -56,8 +58,10 @@ export default function InviteMemberScreen() {
     }
   }
 
+  const inputTheme = { colors: { onSurfaceVariant: brand.text.muted, background: 'transparent' } };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView style={styles.root} contentContainerStyle={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>
         Mời thành viên
       </Text>
@@ -66,7 +70,7 @@ export default function InviteMemberScreen() {
         visible={anchorMenuOpen}
         onDismiss={() => setAnchorMenuOpen(false)}
         anchor={
-          <Button mode="outlined" onPress={() => setAnchorMenuOpen(true)} style={styles.field}>
+          <Button mode="outlined" textColor={brand.text.body} onPress={() => setAnchorMenuOpen(true)} style={styles.field}>
             {anchorName}
           </Button>
         }
@@ -87,7 +91,7 @@ export default function InviteMemberScreen() {
         visible={relationMenuOpen}
         onDismiss={() => setRelationMenuOpen(false)}
         anchor={
-          <Button mode="outlined" onPress={() => setRelationMenuOpen(true)} style={styles.field}>
+          <Button mode="outlined" textColor={brand.text.body} onPress={() => setRelationMenuOpen(true)} style={styles.field}>
             {relationLabel}
           </Button>
         }
@@ -108,6 +112,11 @@ export default function InviteMemberScreen() {
         label="Họ tên người được mời"
         value={fullName}
         onChangeText={setFullName}
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
         style={styles.field}
       />
       <SegmentedButtons
@@ -126,21 +135,27 @@ export default function InviteMemberScreen() {
         onChangeText={setContact}
         autoCapitalize="none"
         keyboardType="email-address"
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
         style={styles.field}
       />
       <HelperText type={error ? 'error' : 'info'} visible>
         {error ?? 'Stage 1 chỉ hỗ trợ mời bằng email hoặc số điện thoại.'}
       </HelperText>
 
-      <Button mode="contained" onPress={handleInvite} loading={submitting} disabled={submitting}>
+      <PrimaryButton onPress={handleInvite} loading={submitting} disabled={submitting}>
         Gửi lời mời
-      </Button>
+      </PrimaryButton>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { backgroundColor: '#180d08' },
   container: { padding: 24 },
-  title: { marginBottom: 20 },
-  field: { marginBottom: 14 },
+  title: { color: brand.text.heading, fontFamily: brand.fonts.heading, marginBottom: 20 },
+  field: { backgroundColor: 'transparent', marginBottom: 14 },
 });
