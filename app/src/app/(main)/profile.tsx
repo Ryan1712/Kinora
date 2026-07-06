@@ -1,10 +1,12 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Button, Text, TextInput } from 'react-native-paper';
+import { Text, TextInput } from 'react-native-paper';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { PrimaryButton } from '@/components/PrimaryButton';
 import { useAuth } from '@/lib/AuthContext';
 import { updateMyProfile, useMyProfile } from '@/queries/useMyProfile';
+import { brand } from '@/theme/brand';
 
 export default function ProfileScreen() {
   const { session } = useAuth();
@@ -37,22 +39,68 @@ export default function ProfileScreen() {
     }
   }
 
+  const inputTheme = { colors: { onSurfaceVariant: brand.text.muted, background: 'transparent' } };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView style={styles.root} contentContainerStyle={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>Hồ sơ cá nhân</Text>
-      <TextInput label="Họ tên" value={fullName} onChangeText={setFullName} style={styles.input} />
-      <TextInput label="Số điện thoại" value={phone} onChangeText={setPhone} style={styles.input} />
-      <TextInput label="Nghề nghiệp" value={occupation} onChangeText={setOccupation} style={styles.input} />
-      <TextInput label="Nơi ở" value={address} onChangeText={setAddress} style={styles.input} />
-      {profile && <Text variant="bodySmall">Mã mời: {profile.invite_code}</Text>}
-      <Button mode="contained" onPress={handleSave} loading={saving} disabled={saving} style={styles.button}>Lưu</Button>
+      <TextInput
+        label="Họ tên"
+        value={fullName}
+        onChangeText={setFullName}
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
+        style={styles.input}
+      />
+      <TextInput
+        label="Số điện thoại"
+        value={phone}
+        onChangeText={setPhone}
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
+        style={styles.input}
+      />
+      <TextInput
+        label="Nghề nghiệp"
+        value={occupation}
+        onChangeText={setOccupation}
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
+        style={styles.input}
+      />
+      <TextInput
+        label="Nơi ở"
+        value={address}
+        onChangeText={setAddress}
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
+        style={styles.input}
+      />
+      {profile && <Text variant="bodySmall" style={styles.muted}>Mã mời: {profile.invite_code}</Text>}
+      <PrimaryButton onPress={handleSave} loading={saving} disabled={saving} style={styles.button}>
+        Lưu
+      </PrimaryButton>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { backgroundColor: '#180d08' },
   container: { padding: 24 },
-  title: { marginBottom: 20 },
-  input: { marginBottom: 14 },
+  title: { color: brand.text.heading, fontFamily: brand.fonts.heading, marginBottom: 20 },
+  input: { backgroundColor: 'transparent', marginBottom: 14 },
+  muted: { color: brand.text.muted },
   button: { marginTop: 16 },
 });
