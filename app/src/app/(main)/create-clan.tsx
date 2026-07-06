@@ -1,9 +1,11 @@
 ﻿import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, HelperText, SegmentedButtons, Text, TextInput } from 'react-native-paper';
+import { HelperText, SegmentedButtons, Text, TextInput } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
 import { createClan } from '@/api/createClan';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { brand } from '@/theme/brand';
 
 type BranchType = 'noi' | 'ngoai' | 'khac';
 
@@ -34,10 +36,23 @@ export default function CreateClanScreen() {
     }
   }
 
+  const inputTheme = { colors: { onSurfaceVariant: brand.text.muted, background: 'transparent' } };
+
   return (
     <View style={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>Tạo gia tộc mới</Text>
-      <TextInput label="Tên gia tộc" testID="clan-name-input" value={name} onChangeText={setName} style={styles.input} />
+      <TextInput
+        label="Tên gia tộc"
+        testID="clan-name-input"
+        value={name}
+        onChangeText={setName}
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
+        style={styles.input}
+      />
       <SegmentedButtons
         value={branchType}
         onValueChange={(value) => setBranchType(value as BranchType)}
@@ -49,6 +64,11 @@ export default function CreateClanScreen() {
         testID="admin-name-input"
         value={adminFullName}
         onChangeText={setAdminFullName}
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
         style={styles.input}
       />
       <TextInput
@@ -57,16 +77,23 @@ export default function CreateClanScreen() {
         value={generation}
         onChangeText={setGeneration}
         keyboardType="numeric"
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={inputTheme}
         style={styles.input}
       />
       {error && <HelperText type="error">{error}</HelperText>}
-      <Button mode="contained" onPress={handleCreate} loading={submitting} disabled={submitting}>Tạo gia tộc</Button>
+      <PrimaryButton onPress={handleCreate} loading={submitting} disabled={submitting}>
+        Tạo gia tộc
+      </PrimaryButton>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { marginBottom: 20 },
-  input: { marginBottom: 14 },
+  container: { backgroundColor: '#180d08', flex: 1, padding: 24 },
+  title: { color: brand.text.heading, fontFamily: brand.fonts.heading, marginBottom: 20 },
+  input: { backgroundColor: 'transparent', marginBottom: 14 },
 });
