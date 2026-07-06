@@ -4,8 +4,10 @@ import { Button, HelperText, Text } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { proposeRelationshipChange } from '../../../../api/proposeRelationshipChange';
+import { PrimaryButton } from '../../../../components/PrimaryButton';
 import { useAuth } from '../../../../lib/AuthContext';
 import { useClanMembers } from '../../../../queries/useClanMembers';
+import { brand } from '../../../../theme/brand';
 
 type RelationshipType = 'parent_child' | 'spouse';
 
@@ -55,10 +57,18 @@ export default function ProposeChangeScreen() {
     <View style={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>Đề xuất sửa quan hệ</Text>
       <View style={styles.row}>
-        <Button mode={type === 'parent_child' ? 'contained' : 'outlined'} onPress={() => setType('parent_child')}>
+        <Button
+          mode={type === 'parent_child' ? 'contained' : 'outlined'}
+          textColor={type === 'parent_child' ? undefined : brand.text.body}
+          onPress={() => setType('parent_child')}
+        >
           Cha mẹ/con
         </Button>
-        <Button mode={type === 'spouse' ? 'contained' : 'outlined'} onPress={() => setType('spouse')}>
+        <Button
+          mode={type === 'spouse' ? 'contained' : 'outlined'}
+          textColor={type === 'spouse' ? undefined : brand.text.body}
+          onPress={() => setType('spouse')}
+        >
           Vợ/chồng
         </Button>
       </View>
@@ -67,6 +77,7 @@ export default function ProposeChangeScreen() {
         <Button
           key={member.id}
           mode={targetId === member.id ? 'contained' : 'outlined'}
+          textColor={targetId === member.id ? undefined : brand.text.body}
           onPress={() => setTargetId(member.id)}
           style={styles.input}
         >
@@ -74,17 +85,17 @@ export default function ProposeChangeScreen() {
         </Button>
       ))}
       {error ? <HelperText type="error">{error}</HelperText> : null}
-      <Button mode="contained" onPress={handleSubmit} loading={submitting} disabled={submitting} style={styles.input}>
+      <PrimaryButton onPress={handleSubmit} loading={submitting} disabled={submitting} style={styles.input}>
         Gửi đề xuất
-      </Button>
+      </PrimaryButton>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { marginBottom: 20 },
+  container: { backgroundColor: '#180d08', flex: 1, padding: 24 },
+  title: { color: brand.text.heading, fontFamily: brand.fonts.heading, marginBottom: 20 },
   row: { flexDirection: 'row', gap: 8 },
-  label: { marginTop: 18, marginBottom: 4 },
+  label: { color: brand.text.muted, marginTop: 18, marginBottom: 4 },
   input: { marginTop: 10 },
 });
