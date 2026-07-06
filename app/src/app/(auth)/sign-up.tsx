@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
-import { Button, HelperText, Text, TextInput } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { HelperText, Text, TextInput } from 'react-native-paper';
+
+import { AnimatedLogo } from '@/components/AnimatedLogo';
+import { EmberBackground } from '@/components/EmberBackground';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { brand } from '@/theme/brand';
 import { supabase } from '../../lib/supabase';
 
 export default function SignUpScreen() {
@@ -35,51 +41,77 @@ export default function SignUpScreen() {
 
   return (
     <View style={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>
-        Tạo tài khoản
-      </Text>
-      <TextInput
-        label="Họ tên"
-        accessibilityLabel="Họ tên"
-        value={fullName}
-        onChangeText={setFullName}
-        style={styles.input}
-      />
-      <TextInput
-        label="Email"
-        accessibilityLabel="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={styles.input}
-      />
-      <TextInput
-        label="Mật khẩu"
-        accessibilityLabel="Mật khẩu"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      {error && <HelperText type="error">{error}</HelperText>}
-      <Button
-        mode="contained"
-        onPress={handleSignUp}
-        loading={submitting}
-        disabled={submitting}
-        style={styles.button}
-      >
-        Đăng ký
-      </Button>
-      <Link href="/(auth)/sign-in">Đã có tài khoản? Đăng nhập</Link>
+      <LinearGradient colors={brand.backgroundGradient} style={StyleSheet.absoluteFill} />
+      <EmberBackground />
+      <View style={styles.body}>
+        <AnimatedLogo size={56} />
+        <Text variant="headlineMedium" style={styles.title}>
+          Tạo tài khoản
+        </Text>
+        <TextInput
+          label="Họ tên"
+          accessibilityLabel="Họ tên"
+          value={fullName}
+          onChangeText={setFullName}
+          mode="outlined"
+          textColor={brand.text.body}
+          outlineColor={brand.glass.border}
+          activeOutlineColor={brand.gold.mid}
+          theme={{ colors: { onSurfaceVariant: brand.text.muted, background: 'transparent' } }}
+          style={styles.input}
+        />
+        <TextInput
+          label="Email"
+          accessibilityLabel="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          mode="outlined"
+          textColor={brand.text.body}
+          outlineColor={brand.glass.border}
+          activeOutlineColor={brand.gold.mid}
+          theme={{ colors: { onSurfaceVariant: brand.text.muted, background: 'transparent' } }}
+          style={styles.input}
+        />
+        <TextInput
+          label="Mật khẩu"
+          accessibilityLabel="Mật khẩu"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          mode="outlined"
+          textColor={brand.text.body}
+          outlineColor={brand.glass.border}
+          activeOutlineColor={brand.gold.mid}
+          theme={{ colors: { onSurfaceVariant: brand.text.muted, background: 'transparent' } }}
+          style={styles.input}
+        />
+        {error && <HelperText type="error">{error}</HelperText>}
+        <PrimaryButton onPress={handleSignUp} loading={submitting} disabled={submitting} style={styles.button}>
+          Đăng ký
+        </PrimaryButton>
+        <Link href="/(auth)/sign-in">
+          <Text style={styles.link}>Đã có tài khoản? Đăng nhập</Text>
+        </Link>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24 },
-  title: { marginBottom: 24, textAlign: 'center' },
-  input: { marginBottom: 12 },
-  button: { marginTop: 8, marginBottom: 16 },
+  container: { flex: 1 },
+  body: { flex: 1, justifyContent: 'center', padding: 24 },
+  title: {
+    color: brand.text.heading,
+    fontFamily: brand.fonts.heading,
+    marginBottom: 24,
+    textAlign: 'center',
+    textShadowColor: 'rgba(244,200,105,0.35)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
+  },
+  input: { backgroundColor: 'transparent', marginBottom: 12 },
+  button: { marginBottom: 16, marginTop: 8 },
+  link: { color: brand.gold.mid, fontWeight: '600', textAlign: 'center' },
 });
