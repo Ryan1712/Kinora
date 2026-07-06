@@ -6,7 +6,14 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 jest.mock('react-native-safe-area-context', () => {
   const React = require('react');
+  // react-native-paper's PaperProvider renders SafeAreaProviderCompat, which reads
+  // SafeAreaInsetsContext.Consumer and initialWindowMetrics directly (not just the
+  // hooks/components below). Those two are plain React.createContext()/values with no
+  // native dependency, so it's safe to pull them from the real module here.
+  const { SafeAreaInsetsContext } = jest.requireActual('react-native-safe-area-context');
   return {
+    SafeAreaInsetsContext,
+    initialWindowMetrics: null,
     SafeAreaProvider: ({ children }) => React.createElement(React.Fragment, null, children),
     SafeAreaConsumer: ({ children }) => children({ top: 0, bottom: 0, left: 0, right: 0 }),
     SafeAreaView: ({ children }) => React.createElement(React.Fragment, null, children),
