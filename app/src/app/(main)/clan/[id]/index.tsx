@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { leaveClan } from '@/api/leaveClan';
 import { GenerationDivider } from '@/components/GenerationDivider';
+import { GlassCard } from '@/components/GlassCard';
 import { MemberAvatar } from '@/components/MemberAvatar';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { RoleBadge } from '@/components/RoleBadge';
@@ -87,14 +88,16 @@ export default function ClanHomeScreen() {
         renderItem={({ item, index }) => (
           <View>
             {shouldShowDivider(item, index) && <GenerationDivider generation={item.generation_number} />}
-            <View style={styles.memberRow} onTouchEnd={() => router.push(`/(main)/clan/${id}/member/${item.id}`)}>
-              <MemberAvatar fullName={item.full_name} gender={item.gender} />
-              <View style={styles.memberInfo}>
-                <Text style={styles.memberName}>{item.full_name}</Text>
-                <Text style={styles.memberMeta}>Đời {item.generation_number}</Text>
-              </View>
-              <RoleBadge role={item.role} />
-            </View>
+            <Pressable onPress={() => router.push(`/(main)/clan/${id}/member/${item.id}`)}>
+              <GlassCard style={styles.memberRow}>
+                <MemberAvatar fullName={item.full_name} gender={item.gender} />
+                <View style={styles.memberInfo}>
+                  <Text style={styles.memberName}>{item.full_name}</Text>
+                  <Text style={styles.memberMeta}>Đời {item.generation_number}</Text>
+                </View>
+                <RoleBadge role={item.role} />
+              </GlassCard>
+            </Pressable>
           </View>
         )}
       />
@@ -110,10 +113,6 @@ const styles = StyleSheet.create({
   muted: { color: brand.text.muted },
   memberRow: {
     alignItems: 'center',
-    backgroundColor: brand.glass.surface,
-    borderColor: brand.glass.border,
-    borderRadius: 14,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
     marginBottom: 10,

@@ -7,7 +7,7 @@ export const appTheme: MD3Theme = {
   colors: {
     ...MD3DarkTheme.colors,
     primary: brand.gold.mid,
-    onPrimary: '#2b1a12',
+    onPrimary: brand.text.onGold,
     secondary: brand.gold.dark,
     error: brand.red,
     background: '#180d08',

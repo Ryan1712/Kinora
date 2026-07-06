@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { brand } from '@/theme/brand';
 
 interface MemberAvatarProps {
   fullName: string;
@@ -15,7 +16,7 @@ function initialsOf(fullName: string): string {
   return (parts[0][0]! + parts[parts.length - 1][0]!).toUpperCase();
 }
 
-const GOLD_GRADIENT = ['#e8bd6e', '#a8721f'] as const;
+const GOLD_GRADIENT = [brand.gold.light, brand.gold.dark] as const;
 const GREEN_GRADIENT = ['#8fae9c', '#3d6b57'] as const;
 
 export function MemberAvatar({ fullName, gender, size = 40 }: MemberAvatarProps) {
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initials: {
-    color: '#2b1a12',
+    color: brand.text.onGold,
     fontWeight: '700',
   },
 });

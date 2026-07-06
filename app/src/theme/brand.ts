@@ -12,6 +12,7 @@ export const brand = {
     heading: '#f4dba0',
     body: '#f0e4d0',
     muted: '#a8926f',
+    onGold: '#2b1a12',
   },
   glass: {
     surface: 'rgba(255,255,255,0.06)',

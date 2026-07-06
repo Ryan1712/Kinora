@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { brand } from '@/theme/brand';
 
 interface RoleBadgeProps {
   role: string | null;
@@ -14,7 +15,7 @@ const LABELS: Record<string, string> = {
 const COLORS: Record<string, { background: string; text: string }> = {
   admin: { background: 'rgba(244,200,105,0.18)', text: '#f4dba0' },
   deputy: { background: 'rgba(143,174,156,0.2)', text: '#8fae9c' },
-  member: { background: 'rgba(255,255,255,0.08)', text: '#c9bba3' },
+  member: { background: 'rgba(255,255,255,0.08)', text: brand.text.muted },
 };
 
 export function RoleBadge({ role }: RoleBadgeProps) {

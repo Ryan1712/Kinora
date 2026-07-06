@@ -36,7 +36,7 @@ export function PrimaryButton({ style, children, ...rest }: PrimaryButtonProps) 
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <Button mode="contained" buttonColor="transparent" textColor="#2b1a12" {...rest}>
+      <Button mode="contained" buttonColor="transparent" textColor={brand.text.onGold} {...rest}>
         {children}
       </Button>
       <Animated.View style={[styles.shine, shineStyle]} pointerEvents="none" />
