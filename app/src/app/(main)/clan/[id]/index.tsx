@@ -1,12 +1,17 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Button, List, Text } from 'react-native-paper';
+import { Button, Text } from 'react-native-paper';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { leaveClan } from '@/api/leaveClan';
+import { GenerationDivider } from '@/components/GenerationDivider';
+import { MemberAvatar } from '@/components/MemberAvatar';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { RoleBadge } from '@/components/RoleBadge';
 import { useAuth } from '@/lib/AuthContext';
-import { useClanMembers } from '@/queries/useClanMembers';
+import { MemberRow, useClanMembers } from '@/queries/useClanMembers';
+import { brand } from '@/theme/brand';
 
 export default function ClanHomeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,6 +37,11 @@ export default function ClanHomeScreen() {
     }
   }
 
+  function shouldShowDivider(item: MemberRow, index: number): boolean {
+    if (index === 0) return true;
+    return members![index - 1].generation_number !== item.generation_number;
+  }
+
   return (
     <View style={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>
@@ -39,42 +49,53 @@ export default function ClanHomeScreen() {
       </Text>
 
       <View style={styles.actions}>
-        <Button mode="contained" onPress={() => router.push(`/(main)/clan/${id}/invite`)}>
+        <PrimaryButton onPress={() => router.push(`/(main)/clan/${id}/invite`)} style={styles.primaryChip}>
           Mời thành viên
-        </Button>
+        </PrimaryButton>
         {me && (
-          <Button onPress={() => router.push(`/(main)/clan/${id}/propose-change`)}>
+          <Button
+            textColor={brand.text.body}
+            onPress={() => router.push(`/(main)/clan/${id}/propose-change`)}
+          >
             Đề xuất sửa quan hệ
           </Button>
         )}
         {isAdminOrDeputy && (
-          <Button onPress={() => router.push(`/(main)/clan/${id}/requests`)}>
+          <Button textColor={brand.text.body} onPress={() => router.push(`/(main)/clan/${id}/requests`)}>
             Yêu cầu chờ duyệt
           </Button>
         )}
         {isAdmin && (
-          <Button onPress={() => router.push(`/(main)/clan/${id}/settings`)}>Cài đặt</Button>
+          <Button textColor={brand.text.body} onPress={() => router.push(`/(main)/clan/${id}/settings`)}>
+            Cài đặt
+          </Button>
         )}
         {me && !isAdmin && (
-          <Button textColor="#c0432f" onPress={handleLeave} loading={leaving} disabled={leaving}>
+          <Button textColor={brand.red} onPress={handleLeave} loading={leaving} disabled={leaving}>
             Rời gia tộc
           </Button>
         )}
       </View>
 
-      {isLoading && <Text>Đang tải...</Text>}
-      {isError && <Text>Không tải được danh sách thành viên.</Text>}
-      {!isLoading && !members?.length && <Text>Chưa có thành viên nào.</Text>}
+      {isLoading && <Text style={styles.muted}>Đang tải...</Text>}
+      {isError && <Text style={styles.muted}>Không tải được danh sách thành viên.</Text>}
+      {!isLoading && !members?.length && <Text style={styles.muted}>Chưa có thành viên nào.</Text>}
 
       <FlatList
         data={members ?? []}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <List.Item
-            title={item.full_name}
-            description={`Đời ${item.generation_number}${item.role ? ` - ${item.role}` : ''}`}
-            onPress={() => router.push(`/(main)/clan/${id}/member/${item.id}`)}
-          />
+        renderItem={({ item, index }) => (
+          <View>
+            {shouldShowDivider(item, index) && <GenerationDivider generation={item.generation_number} />}
+            <View style={styles.memberRow} onTouchEnd={() => router.push(`/(main)/clan/${id}/member/${item.id}`)}>
+              <MemberAvatar fullName={item.full_name} gender={item.gender} />
+              <View style={styles.memberInfo}>
+                <Text style={styles.memberName}>{item.full_name}</Text>
+                <Text style={styles.memberMeta}>Đời {item.generation_number}</Text>
+              </View>
+              <RoleBadge role={item.role} />
+            </View>
+          </View>
         )}
       />
     </View>
@@ -82,7 +103,23 @@ export default function ClanHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { marginBottom: 12 },
+  container: { backgroundColor: '#180d08', flex: 1, padding: 16 },
+  title: { color: brand.text.heading, fontFamily: brand.fonts.heading, marginBottom: 12 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  primaryChip: { minWidth: 160 },
+  muted: { color: brand.text.muted },
+  memberRow: {
+    alignItems: 'center',
+    backgroundColor: brand.glass.surface,
+    borderColor: brand.glass.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 10,
+    padding: 12,
+  },
+  memberInfo: { flex: 1 },
+  memberName: { color: brand.text.body, fontSize: 14, fontWeight: '600' },
+  memberMeta: { color: brand.text.muted, fontSize: 11, marginTop: 2 },
 });
