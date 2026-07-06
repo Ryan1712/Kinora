@@ -1,10 +1,13 @@
 ﻿import React, { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
+import { Button, Text } from 'react-native-paper';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { respondInvite } from '@/api/respondInvite';
+import { GlassCard } from '@/components/GlassCard';
+import { PrimaryButton } from '@/components/PrimaryButton';
 import { useMyInvites } from '@/queries/useMyInvites';
+import { brand } from '@/theme/brand';
 
 export default function InvitesScreen() {
   const { data: invites, isLoading } = useMyInvites();
@@ -25,18 +28,31 @@ export default function InvitesScreen() {
   return (
     <View style={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>Lời mời đang chờ</Text>
-      {isLoading && <Text>Đang tải...</Text>}
+      {isLoading && <Text style={styles.muted}>Đang tải...</Text>}
       <FlatList
         data={invites ?? []}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Card style={styles.card}>
-            <Card.Title title={item.invitee_full_name} subtitle={item.clans.name} />
-            <Card.Actions>
-              <Button onPress={() => respond(item.id, 'decline')} loading={processingId === item.id}>Từ chối</Button>
-              <Button mode="contained" onPress={() => respond(item.id, 'accept')} loading={processingId === item.id}>Đồng ý</Button>
-            </Card.Actions>
-          </Card>
+          <GlassCard style={styles.card}>
+            <Text style={styles.cardTitle}>{item.invitee_full_name}</Text>
+            <Text style={styles.cardSubtitle}>{item.clans.name}</Text>
+            <View style={styles.actions}>
+              <Button
+                textColor={brand.text.body}
+                onPress={() => respond(item.id, 'decline')}
+                loading={processingId === item.id}
+              >
+                Từ chối
+              </Button>
+              <PrimaryButton
+                onPress={() => respond(item.id, 'accept')}
+                loading={processingId === item.id}
+                style={styles.acceptButton}
+              >
+                Đồng ý
+              </PrimaryButton>
+            </View>
+          </GlassCard>
         )}
       />
     </View>
@@ -44,7 +60,12 @@ export default function InvitesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { marginBottom: 12 },
+  container: { backgroundColor: '#180d08', flex: 1, padding: 16 },
+  title: { color: brand.text.heading, fontFamily: brand.fonts.heading, marginBottom: 12 },
+  muted: { color: brand.text.muted },
   card: { marginBottom: 12 },
+  cardTitle: { color: brand.text.body, fontSize: 15, fontWeight: '700' },
+  cardSubtitle: { color: brand.text.muted, fontSize: 12, marginTop: 3 },
+  actions: { flexDirection: 'row', gap: 8, justifyContent: 'flex-end', marginTop: 10 },
+  acceptButton: { minWidth: 100 },
 });
