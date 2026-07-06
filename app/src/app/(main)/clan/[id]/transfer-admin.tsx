@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { transferAdmin } from '@/api/transferAdmin';
 import { useClanMembers } from '@/queries/useClanMembers';
+import { brand } from '@/theme/brand';
 
 interface ClanMember {
   id: string;
@@ -55,6 +56,7 @@ export default function TransferAdminScreen() {
         <Button
           key={member.id}
           mode={targetId === member.id ? 'contained' : 'outlined'}
+          textColor={targetId === member.id ? undefined : brand.text.body}
           onPress={() => setTargetId(member.id)}
           style={styles.input}
         >
@@ -67,10 +69,15 @@ export default function TransferAdminScreen() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={{ colors: { onSurfaceVariant: brand.text.muted, background: 'transparent' } }}
         style={styles.input}
       />
       {error ? <HelperText type="error">{error}</HelperText> : null}
-      <Button mode="contained" buttonColor="#c0432f" onPress={handleConfirm} loading={submitting} disabled={submitting}>
+      <Button mode="contained" buttonColor={brand.red} onPress={handleConfirm} loading={submitting} disabled={submitting}>
         Xác nhận nhường quyền
       </Button>
     </View>
@@ -78,8 +85,8 @@ export default function TransferAdminScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { marginBottom: 20 },
-  label: { marginTop: 8 },
-  input: { marginTop: 14 },
+  container: { backgroundColor: '#180d08', flex: 1, padding: 24 },
+  title: { color: brand.text.heading, fontFamily: brand.fonts.heading, marginBottom: 20 },
+  label: { color: brand.text.muted, marginTop: 8 },
+  input: { backgroundColor: 'transparent', marginTop: 14 },
 });
