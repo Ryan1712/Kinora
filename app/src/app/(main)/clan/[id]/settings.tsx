@@ -4,6 +4,8 @@ import { Button, Text, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { clanAdminSettings } from '../../../../api/clanAdminSettings';
+import { PrimaryButton } from '../../../../components/PrimaryButton';
+import { brand } from '../../../../theme/brand';
 
 type InvitePermission = 'admin_only' | 'all_members';
 
@@ -31,20 +33,39 @@ export default function SettingsScreen() {
   return (
     <View style={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>Cài đặt gia tộc</Text>
-      <TextInput label="Tên gia tộc" testID="clan-name-input" value={name} onChangeText={setName} style={styles.input} />
+      <TextInput
+        label="Tên gia tộc"
+        testID="clan-name-input"
+        value={name}
+        onChangeText={setName}
+        mode="outlined"
+        textColor={brand.text.body}
+        outlineColor={brand.glass.border}
+        activeOutlineColor={brand.gold.mid}
+        theme={{ colors: { onSurfaceVariant: brand.text.muted, background: 'transparent' } }}
+        style={styles.input}
+      />
       <Text style={styles.label}>Ai được phép mời thành viên?</Text>
       <View style={styles.row}>
-        <Button mode={invitePermission === 'admin_only' ? 'contained' : 'outlined'} onPress={() => setInvitePermission('admin_only')}>
+        <Button
+          mode={invitePermission === 'admin_only' ? 'contained' : 'outlined'}
+          textColor={invitePermission === 'admin_only' ? undefined : brand.text.body}
+          onPress={() => setInvitePermission('admin_only')}
+        >
           Chỉ trưởng/phó
         </Button>
-        <Button mode={invitePermission === 'all_members' ? 'contained' : 'outlined'} onPress={() => setInvitePermission('all_members')}>
+        <Button
+          mode={invitePermission === 'all_members' ? 'contained' : 'outlined'}
+          textColor={invitePermission === 'all_members' ? undefined : brand.text.body}
+          onPress={() => setInvitePermission('all_members')}
+        >
           Mọi thành viên
         </Button>
       </View>
-      <Button mode="contained" onPress={handleSave} loading={saving} disabled={saving} style={styles.input}>
+      <PrimaryButton onPress={handleSave} loading={saving} disabled={saving} style={styles.input}>
         Lưu cài đặt
-      </Button>
-      <Button textColor="#c0432f" onPress={() => router.push(`/(main)/clan/${id}/transfer-admin`)}>
+      </PrimaryButton>
+      <Button textColor={brand.red} onPress={() => router.push(`/(main)/clan/${id}/transfer-admin`)}>
         Nhường quyền trưởng họ
       </Button>
     </View>
@@ -52,9 +73,9 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { marginBottom: 20 },
-  label: { marginTop: 8, marginBottom: 4 },
+  container: { backgroundColor: '#180d08', flex: 1, padding: 24 },
+  title: { color: brand.text.heading, fontFamily: brand.fonts.heading, marginBottom: 20 },
+  label: { color: brand.text.muted, marginTop: 8, marginBottom: 4 },
   row: { flexDirection: 'row', gap: 8 },
-  input: { marginTop: 10 },
+  input: { backgroundColor: 'transparent', marginTop: 10 },
 });
