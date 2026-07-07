@@ -145,13 +145,26 @@ màn hồ sơ cá nhân. Cần bổ sung tối thiểu:
   `father_sibling`, hoặc `mother_sibling` (các trường hợp cần so tuổi để
   ra đúng xưng hô); các mã quan hệ khác (father/mother/son/daughter/
   spouse/grandparent) để tùy chọn.
-- `app/src/app/(main)/profile.tsx` (màn Hồ sơ cá nhân): thêm ô ngày sinh,
-  tự cập nhật qua `updateMyProfile` (mở rộng hàm hiện có để nhận thêm
-  `dob`).
-- **Ngoài phạm vi:** sửa `dob` cho người đã tồn tại từ trước (đặc biệt
-  placeholder chưa có tài khoản liên kết) — chưa có màn "sửa thông tin
-  người khác" ở Stage 1/2a. Với các trường hợp này, thuật toán rơi vào
-  nhánh "thiếu dữ liệu" ở trên, không chặn tính năng.
+- `app/src/app/(main)/profile.tsx` (màn Hồ sơ cá nhân): thêm ô ngày sinh.
+
+**Cập nhật sau khi khảo sát:** `persons` (nơi thuật toán đọc `dob`) không
+cho phép client ghi trực tiếp — mọi thay đổi phải qua Edge Function dùng
+service_role (nguyên tắc đã có từ Stage 1). `updateMyProfile` hiện tại chỉ
+sửa bảng `users` (tài khoản), không phải `persons` (hồ sơ trong cây), nên
+không thể chỉ "mở rộng `updateMyProfile`" như dự kiến ban đầu — làm vậy sẽ
+khiến ô ngày sinh ở màn Hồ sơ cá nhân không giúp được gì cho thuật toán.
+
+**Quyết định:** thêm 1 Edge Function mới, `update-my-person-info`, nhận
+`{ dob }`, cập nhật `persons.dob` cho (các) dòng `persons` có
+`linked_user_id` = người gọi (xử lý được cả trường hợp 1 tài khoản thuộc
+nhiều gia tộc). Màn Hồ sơ cá nhân gọi function này thay vì
+`updateMyProfile` cho riêng trường `dob` (các trường khác — họ tên, sđt,
+nghề nghiệp, nơi ở — vẫn qua `updateMyProfile` như cũ, không đổi).
+
+- **Ngoài phạm vi:** sửa `dob` cho người đã tồn tại từ trước mà KHÔNG phải
+  chính mình (đặc biệt placeholder chưa có tài khoản liên kết) — chưa có
+  màn "sửa thông tin người khác" ở Stage 1/2a. Với các trường hợp này,
+  thuật toán rơi vào nhánh "thiếu dữ liệu" ở trên, không chặn tính năng.
 
 ## Testing
 
@@ -172,7 +185,10 @@ màn hồ sơ cá nhân. Cần bổ sung tối thiểu:
   có (`useClanMembers`).
 - **Test giao diện nhập `dob` mới:** `invite.tsx` bắt buộc nhập khi đúng
   3 mã quan hệ nêu trên, không bắt buộc với các mã còn lại; `profile.tsx`
-  lưu đúng `dob` qua `updateMyProfile`.
+  gọi đúng Edge Function `update-my-person-info` với `dob`.
+- **Test Edge Function `update-my-person-info` (mới):** cập nhật đúng
+  `persons.dob` cho (các) person có `linked_user_id` = người gọi; không
+  ảnh hưởng person của người khác.
 
 ## Ngoài phạm vi đợt này
 
