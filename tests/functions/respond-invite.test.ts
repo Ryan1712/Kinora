@@ -266,4 +266,116 @@ describe("respond-invite function", () => {
       .eq("type", "parent_child");
     expect(rel).toHaveLength(1);
   });
+
+  it("accept (father_sibling then mother_sibling for the same anchor): both resolve successfully and the anchor ends up with two recorded parents", async () => {
+    // This is the motivating end-to-end scenario for Stage 2a: under Stage 1's old
+    // one-parent-only constraint, resolving father_sibling (which auto-creates a
+    // placeholder father) followed by mother_sibling (which auto-creates a placeholder
+    // mother) for the same anchor would 400 on the second invite, because the anchor
+    // already had one recorded parent (the placeholder father) and the schema only
+    // allowed one. Stage 2a's two-parents-per-person migration + trigger should let both
+    // succeed, giving the anchor a distinct paternal-side and maternal-side ancestor chain.
+    const svc = serviceClient();
+    const adminEmail = `rbothadm-${Date.now()}-${Math.random()}@example.com`;
+    const adminUser = await createTestUser(adminEmail, "password123");
+    await svc.from("users").insert({ id: adminUser.id, full_name: "Admin" });
+    const adminClient = await signInAs(adminEmail, "password123");
+    const adminToken = await accessTokenFor(adminClient);
+
+    const clanRes = await fetch(functionUrl("create-clan"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Ho Both Siblings Regression",
+        branch_type: "noi",
+        admin_full_name: "Admin",
+        admin_generation_number: 15,
+      }),
+    });
+    expect(clanRes.status).toBe(200);
+    const clanBody = await clanRes.json();
+    const clanId = clanBody.clan_id;
+    const anchorPersonId = clanBody.person_id;
+
+    // First: resolve father_sibling for the anchor (creates placeholder paternal
+    // grandparent + placeholder father, links a paternal uncle/aunt).
+    const uncleEmail = `rbothuncle-${Date.now()}@example.com`;
+    const uncleUser = await createTestUser(uncleEmail, "password123");
+    await svc.from("users").insert({ id: uncleUser.id, full_name: "Chu" });
+
+    const uncleInviteRes = await fetch(functionUrl("invite-member"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clan_id: clanId,
+        anchor_person_id: anchorPersonId,
+        relation_code: "father_sibling",
+        invitee_full_name: "Chu",
+        invitee_gender: "male",
+        invitee_user_id: uncleUser.id,
+      }),
+    });
+    expect(uncleInviteRes.status).toBe(200);
+    const uncleInviteBody = await uncleInviteRes.json();
+
+    const uncleClient = await signInAs(uncleEmail, "password123");
+    const uncleToken = await accessTokenFor(uncleClient);
+    const uncleRespondRes = await fetch(functionUrl("respond-invite"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${uncleToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ invite_id: uncleInviteBody.invite_id, action: "accept" }),
+    });
+    expect(uncleRespondRes.status).toBe(200);
+
+    // Second: resolve mother_sibling for the SAME anchor (creates placeholder maternal
+    // grandparent + placeholder mother, links a maternal uncle/aunt). Under Stage 1 this
+    // would have 400'd because the anchor already had a recorded parent (the placeholder
+    // father created above).
+    const auntEmail = `rbothaunt-${Date.now()}@example.com`;
+    const auntUser = await createTestUser(auntEmail, "password123");
+    await svc.from("users").insert({ id: auntUser.id, full_name: "Di" });
+
+    const auntInviteRes = await fetch(functionUrl("invite-member"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clan_id: clanId,
+        anchor_person_id: anchorPersonId,
+        relation_code: "mother_sibling",
+        invitee_full_name: "Di",
+        invitee_gender: "female",
+        invitee_user_id: auntUser.id,
+      }),
+    });
+    expect(auntInviteRes.status).toBe(200);
+    const auntInviteBody = await auntInviteRes.json();
+
+    const auntClient = await signInAs(auntEmail, "password123");
+    const auntToken = await accessTokenFor(auntClient);
+    const auntRespondRes = await fetch(functionUrl("respond-invite"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${auntToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ invite_id: auntInviteBody.invite_id, action: "accept" }),
+    });
+    expect(auntRespondRes.status).toBe(200);
+
+    // The anchor should now have exactly two recorded parents: the placeholder father
+    // (paternal side, created by father_sibling) and the placeholder mother (maternal
+    // side, created by mother_sibling).
+    const { data: anchorParents } = await svc
+      .from("relationships")
+      .select("from_person_id")
+      .eq("to_person_id", anchorPersonId)
+      .eq("type", "parent_child");
+    expect(anchorParents).toHaveLength(2);
+    const parentIds = anchorParents!.map((row) => row.from_person_id);
+    expect(new Set(parentIds).size).toBe(2);
+
+    const { data: parentPersons } = await svc
+      .from("persons")
+      .select("id, gender")
+      .in("id", parentIds);
+    const genders = parentPersons!.map((p) => p.gender).sort();
+    expect(genders).toEqual(["female", "male"]);
+  });
 });

@@ -46,12 +46,36 @@ Deno.serve(async (req: Request) => {
     });
     if (cycleCheck) return jsonResponse({ error: "this change would create a cycle in the tree" }, 409);
 
-    const { data: target } = await svc.from("persons").select("generation_number").eq("id", targetId).single();
+    const { data: target } = await svc.from("persons").select("generation_number, gender").eq("id", targetId).single();
     const { data: person } = await svc.from("persons").select("generation_number").eq("id", personId).single();
     const newGeneration = target!.generation_number + 1;
     const delta = newGeneration - person!.generation_number;
 
-    await svc.from("relationships").delete().eq("to_person_id", personId).eq("type", "parent_child");
+    const { data: existingParents, error: existingParentsErr } = await svc
+      .from("relationships")
+      .select("id, from_person_id, persons!relationships_from_person_id_fkey(gender)")
+      .eq("to_person_id", personId)
+      .eq("type", "parent_child");
+    if (existingParentsErr) return jsonResponse({ error: existingParentsErr.message }, 500);
+
+    const targetGender = (target!.gender ?? "unknown") as "male" | "female" | "unknown";
+    const parentsToReplace = (existingParents ?? []).filter((row: any) => {
+      const existingGender = row.persons?.gender ?? "unknown";
+      if (targetGender === "unknown") return existingGender === "unknown";
+      return existingGender === targetGender;
+    });
+    if (parentsToReplace.length === 0 && (existingParents?.length ?? 0) >= 2) {
+      return jsonResponse({ error: "this person already has two recorded parents" }, 409);
+    }
+
+    if (parentsToReplace.length > 0) {
+      const { error: deleteErr } = await svc
+        .from("relationships")
+        .delete()
+        .in("id", parentsToReplace.map((row: any) => row.id));
+      if (deleteErr) return jsonResponse({ error: deleteErr.message }, 500);
+    }
+
     const { error: insertErr } = await svc
       .from("relationships")
       .insert({ clan_id: changeRequest.clan_id, from_person_id: targetId, to_person_id: personId, type: "parent_child" });

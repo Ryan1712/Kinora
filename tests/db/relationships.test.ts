@@ -69,4 +69,107 @@ describe("relationships graph functions", () => {
     expect(byId[child]).toBe(17);
     expect(byId[grandchild]).toBe(18);
   });
+
+  it("allows one father and one mother but rejects extra or duplicate-gender parents", async () => {
+    const father = await makePerson(20, "Father");
+    const mother = await makePerson(20, "Mother");
+    const secondFather = await makePerson(20, "Second Father");
+    const childWithTwoParents = await makePerson(21, "Child With Two Parents");
+
+    await admin.from("persons").update({ gender: "male" }).eq("id", father);
+    await admin.from("persons").update({ gender: "female" }).eq("id", mother);
+    await admin.from("persons").update({ gender: "male" }).eq("id", secondFather);
+
+    const { error: fatherErr } = await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: father,
+      to_person_id: childWithTwoParents,
+      type: "parent_child",
+    });
+    expect(fatherErr).toBeNull();
+
+    const { error: motherErr } = await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: mother,
+      to_person_id: childWithTwoParents,
+      type: "parent_child",
+    });
+    expect(motherErr).toBeNull();
+
+    const { error: thirdParentErr } = await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: secondFather,
+      to_person_id: childWithTwoParents,
+      type: "parent_child",
+    });
+    expect(thirdParentErr).not.toBeNull();
+
+    const childWithFather = await makePerson(21, "Child With Father");
+    await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: father,
+      to_person_id: childWithFather,
+      type: "parent_child",
+    });
+
+    const { error: duplicateGenderErr } = await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: secondFather,
+      to_person_id: childWithFather,
+      type: "parent_child",
+    });
+    expect(duplicateGenderErr).not.toBeNull();
+
+    const secondMother = await makePerson(20, "Second Mother");
+    await admin.from("persons").update({ gender: "female" }).eq("id", secondMother);
+
+    const childWithMother = await makePerson(21, "Child With Mother");
+    await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: mother,
+      to_person_id: childWithMother,
+      type: "parent_child",
+    });
+
+    const { error: duplicateMotherErr } = await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: secondMother,
+      to_person_id: childWithMother,
+      type: "parent_child",
+    });
+    expect(duplicateMotherErr).not.toBeNull();
+  });
+
+  it("never blocks unknown-gender parents on the duplicate-gender rule, but still enforces the max-2 cap", async () => {
+    const firstUnknownParent = await makePerson(20, "Unknown Parent One");
+    const secondUnknownParent = await makePerson(20, "Unknown Parent Two");
+    const thirdParent = await makePerson(20, "Third Parent");
+    const childWithUnknownParents = await makePerson(21, "Child With Unknown Parents");
+
+    // firstUnknownParent and secondUnknownParent are left at the default gender ("unknown").
+
+    const { error: firstErr } = await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: firstUnknownParent,
+      to_person_id: childWithUnknownParents,
+      type: "parent_child",
+    });
+    expect(firstErr).toBeNull();
+
+    const { error: secondErr } = await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: secondUnknownParent,
+      to_person_id: childWithUnknownParents,
+      type: "parent_child",
+    });
+    expect(secondErr).toBeNull();
+
+    const { error: thirdErr } = await admin.from("relationships").insert({
+      clan_id: clanId,
+      from_person_id: thirdParent,
+      to_person_id: childWithUnknownParents,
+      type: "parent_child",
+    });
+    expect(thirdErr).not.toBeNull();
+  });
 });

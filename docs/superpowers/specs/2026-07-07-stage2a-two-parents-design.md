@@ -1,7 +1,8 @@
 # Stage 2a — Cho phép lưu cả cha lẫn mẹ cho 1 người
 
 Ngày: 2026-07-07
-Trạng thái: Đã duyệt (chờ viết implementation plan)
+Trạng thái: Đã triển khai (phát hiện đã có code + test từ trước khi viết
+implementation plan — xem "Cập nhật sau khi khảo sát" bên dưới)
 
 ## Bối cảnh
 
@@ -52,11 +53,36 @@ schema Stage 1 (`would_create_cycle`, ràng buộc 1-admin-1-clan) — thực th
 kể cả khi có thao tác ghi trực tiếp (Studio, script) ngoài luồng ứng dụng
 bình thường.
 
+### Cập nhật sau khi khảo sát: `review-relationship-change` CẦN sửa
+
+Bản spec gốc (bên dưới, phần "Không đổi") nói sai — đã bỏ sót 1 chỗ thực sự
+cần sửa. Khi duyệt một đề xuất sửa quan hệ loại `parent_child`,
+`review-relationship-change` trước đây **xóa toàn bộ** các dòng
+`parent_child` hiện có của người đó rồi mới chèn dòng mới:
+
+```ts
+await svc.from("relationships").delete().eq("to_person_id", personId).eq("type", "parent_child");
+```
+
+Dưới mô hình 1-cha/mẹ cũ, "xóa toàn bộ" và "xóa đúng 1 dòng duy nhất" là
+một. Nhưng với mô hình 2 cha/mẹ, nếu người này đã có cả cha lẫn mẹ và chỉ
+đề xuất đổi cha, lệnh xóa toàn bộ này sẽ **xóa nhầm luôn cả mẹ** — một lỗi
+dữ liệu thật sự, không phải giả thuyết.
+
+**Đã sửa** (nằm trong cùng đợt code đã khảo sát): xác định đúng dòng
+cha/mẹ cần thay thế bằng cách so `gender` của người mới với `gender` của
+từng người cha/mẹ hiện có, chỉ xóa dòng trùng giới tính đó (giữ nguyên
+người cha/mẹ còn lại). Nếu người đó đã có đủ 2 cha/mẹ và không dòng nào
+trùng giới tính với người mới → từ chối với lỗi 409 rõ ràng, không âm thầm
+ghi đè.
+
 ### Không đổi
 
 - **Resolver (`_shared/relations.ts`):** không sửa. Đã đúng sẵn.
-- **Edge Functions gọi resolver** (`invite-member`, `respond-invite`,
-  `propose-relationship-change`, `review-relationship-change`): không sửa.
+- **Edge Functions khác** (`invite-member`, `respond-invite`,
+  `propose-relationship-change`): không sửa — các hàm này chỉ tạo dòng mới
+  (insert), không có thao tác "xóa rồi thay" như `review-relationship-change`,
+  nên không gặp vấn đề tương tự.
 - **`would_create_cycle` / `shift_descendant_generations`:** không sửa —
   đây là các hàm duyệt từ 1 người xuống con cháu, không phụ thuộc số lượng
   cha/mẹ của người đó, nên không bị ảnh hưởng bởi việc cho phép 2 cha mẹ.
@@ -84,6 +110,17 @@ ràng buộc mới (nới lỏng hơn, không phải thắt chặt hơn).
   ngoại cho cùng 1 người.
 - Không cần thêm test RLS mới (chính sách RLS trên `relationships` không
   đổi, chỉ đổi ràng buộc ghi).
+- **Test cho `review-relationship-change` (mới, bổ sung sau khảo sát):**
+  xác nhận việc duyệt đổi cha khi người đó đã có cả cha lẫn mẹ sẽ giữ
+  nguyên mẹ, chỉ thay cha.
+
+## Trạng thái triển khai thực tế (ghi lại khi viết implementation plan)
+
+Toàn bộ phần trên đã có sẵn code + test, chạy `npx vitest run` xác nhận
+16/16 file test, 38/38 test pass (sau khi `supabase db reset` để áp dụng
+migration mới vào DB local — `supabase start` không tự áp migration mới
+vào 1 volume DB đã tồn tại). Chi tiết xem
+`docs/superpowers/plans/2026-07-07-stage2a-two-parents-review.md`.
 
 ## Ngoài phạm vi đợt này
 
